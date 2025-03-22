@@ -151,8 +151,12 @@ Tensor CheckpointTensorCell::get(){
 }
 
 void CheckpointTensorCell::try_remat() {
-  if (!t) {
-    if(remat) remat->remat();
+  if (!defined) {
+    if(remat) {
+      remat->remat();
+      // std::cout << "[remat] in: " << remat->inputs.size() << ", out: " << remat->outputs.size() <<
+      // ", mem:" << pool->memory/1024/1024 << std::endl;
+    }
   }
 }
 

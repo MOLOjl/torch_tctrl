@@ -6,6 +6,7 @@
 #include <queue>
 #include <unordered_map>
 #include <chrono>
+#include <future>
 #include <c10/core/dtb/comm_heads.h>
 #include <c10/core/dtb/CheckpointTensorCell.h>
 
@@ -56,9 +57,16 @@ private:
     std::unordered_map<int, timestamp_t> distance_to_last_change_time;
     std::vector<SDAGNode> last_timer_order_nodes;
 
+    std::future<void> stable_window_future;
+    std::mutex distance_mutex; 
 
     void _insert_sorted(const SDAGNode& node);
     void _update_sorted_nodes(const SDAGNode& node);
+
+    inline void _update_distance_timestamp(int distance, const timestamp_t& time) {
+        std::lock_guard<std::mutex> lock(distance_mutex);
+        distance_to_last_change_time[distance] = time;
+    }
 
 public:
     void _update_stable_window(bool final=false);
@@ -74,6 +82,7 @@ public:
     void relax(const SDAGNode& u, const SDAGNode& v, int weight);
     void process_queue();
     std::vector<SDAGNode> get_sorted_nodes();
+    void wait_async_task();
     void clear_all_nodes();
     void release_resources() override;
 };

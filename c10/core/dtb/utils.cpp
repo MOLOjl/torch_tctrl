@@ -63,7 +63,7 @@ constexpr const bool record_dcr_process = false;       // 记录dcr的聚类过�
 constexpr const bool record_dcr_memory = false;
 constexpr const bool record_move_defrag = false;
 constexpr const bool record_p2ap_actions = false;
-constexpr const bool debug_dag_outputs = true;
+constexpr const bool debug_dag_outputs = false;
 
 size_t dcr_lock_counts = 0;
 

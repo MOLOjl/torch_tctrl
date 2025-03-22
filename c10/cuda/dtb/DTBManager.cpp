@@ -526,6 +526,7 @@ void DTBCheckpointPool::add_dynamic_dag_into_queue(int device) {
   auto pool = device_dtbpool[device].get();
   if(!pool->cur_mdag.defined()) return;
   for(auto& subg: pool->cur_mdag->subgraphs) {
+    // subg->wait_async_task();
     if (subg->nodes.size() < DAG_GRAPH_CONSTRAINT_SIZE) continue;
     // subg->_update_stable_window(true);
 #ifdef DEBUG_MODE

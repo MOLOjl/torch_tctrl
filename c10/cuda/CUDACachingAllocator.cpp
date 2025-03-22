@@ -1131,6 +1131,7 @@ public:
 
   /* Insert a new created SegmentTwin */
   void insert(SegmentTwin* new_segment) {
+    // time_t begin = std::chrono::system_clock::now();
     auto it = size_map.find(new_segment->total_size);
     if(it==size_map.end()){
       // std::set<SegmentTwin*, CompareSegment> segments;
@@ -1140,9 +1141,13 @@ public:
     }else{
       size_map[new_segment->total_size].emplace_back(new_segment);
     }
+    // time_t end = std::chrono::system_clock::now();
+    // auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    // std::cout << "[insert]" << time_cost << "us" << std::endl;
   }
 
   void erase(SegmentTwin* segment) {
+    // time_t begin = std::chrono::system_clock::now();
     auto it = size_map.find(segment->total_size);
     TORCH_INTERNAL_ASSERT(it!=size_map.end());
     // it->second.erase(segment);
@@ -1156,6 +1161,9 @@ public:
     if(it->second.empty()){
       size_map.erase(it);
     }
+    // time_t end = std::chrono::system_clock::now();
+    // auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    // std::cout << "[erase]" << time_cost << "us" << std::endl;
   }
 
   void rearrange_on_site(SegmentTwin* segment) {
@@ -1525,6 +1533,7 @@ public:
     return moved_size;
   }
 
+  
   void display_all_not_in_ap(int device) {
     for(auto it = size_map.rbegin(); it != size_map.rend(); it++) {
       auto *pm = c10::dtb::getDTBPoolManager();
@@ -1550,7 +1559,10 @@ public:
     }
   }
 
+  
   bool move_for_defrag(size_t need_size, int device) {
+    // time_t begin = std::chrono::system_clock::now();
+
     std::vector<SegmentTwin*> candidates_segments;
     auto it = size_map.lower_bound(need_size);
     if(it==size_map.end()) return false;
@@ -1639,6 +1651,10 @@ public:
                 << allocted_size_in/1024/1024 << "MB, stat: " << seg_stat << std::endl;
     }
 #endif
+
+  // time_t end = std::chrono::system_clock::now();
+  // auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+  // std::cout << "[sMigrate]" << time_cost << "us" << std::endl;
 
 
   return true;
@@ -2614,8 +2630,14 @@ class DeviceCachingAllocator {
 #ifdef MEM_TWIN_REC
         else{  // UNIFIED_EVICT
           trigger_free_memory_callbacks(params);
+          // time_t begin = std::chrono::system_clock::now();
           auto if_evict = segManager.auto_evict(size, device, stream);
-          if(!if_evict) {
+          // if (if_evict) {
+          //   time_t end = std::chrono::system_clock::now();
+          //   auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+          //   std::cout << "[sEvict]" << time_cost << "us" << std::endl;
+          // }
+          if(!if_evict&&UNIFIED_EVICT) {
             /// BUG[√]: 移动后会在auto_evict遍历segment报 segment fault（小心修改）
             segManager.auto_evict(size, device, stream, true); // gap size case
 #ifdef DEFRAGMENT
@@ -2689,14 +2711,16 @@ class DeviceCachingAllocator {
   #endif
     }
 
+#ifdef DEFRAGMENT
     if (!block_found) {
-      if(!c10::dtb::move_defrag_flag[device] && (c10::dtb::reserved_memory(device)+size)>c10::dtb::memory_budget) {
+      if(!c10::dtb::move_defrag_flag[device] && (c10::dtb::reserved_memory(device)+size)>c10::dtb::memory_budget && UNIFIED_EVICT) {
         auto if_mv = segManager.move_for_defrag(size, device);
         if(if_mv) {
           block_found = get_free_block(params);
         }
       }
     }
+#endif
 
     // Can't reuse an existing block; try to get a new one.
     if (!block_found) {
@@ -5046,7 +5070,9 @@ class DeviceCachingAllocator {
 
 #ifdef DEFRAGMENT
     // outers mem request
-    if(!c10::dtb::in_runtime_record[c10::cuda::current_device()]) {
+    if(!c10::dtb::in_runtime_record[c10::cuda::current_device()]&&UNIFIED_EVICT) {
+      // time_t begin = std::chrono::system_clock::now();
+
       auto first_fit_size = ((*it)->size);
       auto best_it = it;
       size_t best_total_size = std::numeric_limits<size_t>::max();
@@ -5065,6 +5091,10 @@ class DeviceCachingAllocator {
         }
         it++;
       }
+
+      // time_t end = std::chrono::system_clock::now();
+      // auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+      // std::cout << "[sAlloc]" << time_cost << "us" << std::endl;
 
       if (best_it != pool.blocks.end()) {
         p.block = *best_it;
@@ -5112,6 +5142,7 @@ class DeviceCachingAllocator {
     if ((p.size() >= CachingAllocatorConfig::max_split_size()) &&
         ((*it)->size >= p.size() + kLargeBuffer))
       return false;
+#ifdef DEFRAGMENT
     /// FIXME[√]: 这里限制的是被标记的segment，而不应该只是单纯用size做限制
     auto seg = segManager.get_segment_of_block((*it)->ptr);
     while((void*)seg==c10::dtb::move_defrag_seg_ptr[current_device()]) {
@@ -5121,6 +5152,7 @@ class DeviceCachingAllocator {
       }
       seg = segManager.get_segment_of_block((*it)->ptr);
     }
+#endif
 
     p.block = *it;
     (*it)->gc_count = 0; // Denote this block has been used

@@ -855,8 +855,8 @@ void CheckpointTensorImpl::mutate(const std::string& name,
                  Tensors new_input_values = t;
                  for (size_t idx: mutate_idx) {
                    /// TODO: 绕开clone，这里如果不clone的话 对于add_这种操作会发生跨step的依赖，对于一些模型的训练任务会导致fail
-                  //  new_input_values[idx] = t[idx].clone();
-                   new_input_values[idx] = t[idx];
+                   new_input_values[idx] = t[idx].clone();
+                  //  new_input_values[idx] = t[idx];
                  }
                  mutate(new_input_values);
                  return new_input_values;

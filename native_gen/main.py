@@ -439,6 +439,6 @@ def single_opsfile_func_gen(path):
 
 if __name__ == '__main__':
     # single_func_gen("""at::Tensor & normal_(double mean, double std, c10::optional<at::Generator> generator)""")
-    single_func_gen("""at::Tensor & normal_sparse_csr_(Tensor& self, double mean, double std, c10::optional<Generator> gen)""")
+    single_func_gen("""at::Tensor scaled_dot_product_attention(const at::Tensor & query, const at::Tensor & key, const at::Tensor & value, const c10::optional<at::Tensor> & attn_mask={}, double dropout_p=0.0, bool is_causal=false, c10::optional<double> scale=c10::nullopt)""")
     # single_opsfile_func_gen('/data/wangzehua/pytorch_dtb/torch/include/ATen/ops/pow.h')
     # all_func_sign_and_register()
