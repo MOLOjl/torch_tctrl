@@ -113,9 +113,6 @@ void Rematerializer::remat() {
   for (size_t i = 0; i < outputs.size(); ++i) {
     if (auto output_cell = outputs[i].lock()) {
       output_cell->fill(ret[i]);
-#ifdef MEM_FIRST_EVICT && defined(DEBUG_MODE) 
-      if(record_p2ap_actions) std::cout << "[remat UPDATE AP PTR]" << reinterpret_cast<void*>(output_cell->pool->addr) << "\n";
-#endif
 
 #ifndef ORIGINAL_DTR
       output_cell->pool->lock_remated();

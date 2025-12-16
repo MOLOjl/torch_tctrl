@@ -52,6 +52,7 @@ enum class Backend {
   QuantizedXPU,
   QuantizedPrivateUse1,
   Checkpoint,
+  SparseCheckpoint,
   Undefined,
   MkldnnCPU,
   MPS,
@@ -119,6 +120,8 @@ static inline Backend dispatchKeyToBackend(DispatchKey t) {
     return Backend::QuantizedPrivateUse1;
   } else if (t == DispatchKey::Checkpoint) {
     return Backend::Checkpoint;
+  } else if (t == DispatchKey::SparseCheckpoint) {
+    return Backend::SparseCheckpoint;
   } else if (t == DispatchKey::HPU || t == DispatchKey::AutogradHPU) {
     return Backend::HPU;
   } else if (t == DispatchKey::MTIA || t == DispatchKey::AutogradMTIA) {

@@ -120,30 +120,10 @@ void CheckpointTensorCell::release_resources() {
 
 Tensor CheckpointTensorCell::get(){
   if (!t) {
-      // TORCH_CHECK(remat);
-#ifdef DEBUG_MODE
-      if(!remat){
-        printf("[CHECK REMAT ERROR] tid:%s if_temp:%d device:%d tensors:%ld size:%ld dtype:%s lc:%ld ec:%ld rc:%ld\n", counter_name().c_str(),
-          pool->if_temp ? 1 : 0, pool->device_id, pool->tensors.size(), pool->memory, dtype_.name().data(),
-          pool->lock_count, pool->external_count, pool->remat_count);
-        // printStackTrace();
-      }
-#endif
-      // TORCH_INTERNAL_ASSERT(remat);
-#ifdef DEBUG_MODE
-      // if(record_er_counts)
-      //   DTRLogRematEvents(counter_name(), 0);
-      if(record_remat_recs)
-        DTRLogAddress("remat need "+counter_name(), pool->addr, pool->memory);
-#endif
       remat->remat();
     }
   defined = true;
-  if(!t) {
-    std::cout << "[ERROR] get tensor failed] " << counter_name() << ", " << remat << ", " << pool->external_count <<
-    ", " << pool->lock_count << ", " << pool->remat_count << ", " << pool->evictable() << std::endl;
-    printStackTrace();
-  }
+
   // TORCH_INTERNAL_ASSERT(t);
   // TORCH_INTERNAL_ASSERT(!t->key_set().has(DispatchKey::CheckpointTensorId));
   pool->last_used_time = std::chrono::system_clock::now();

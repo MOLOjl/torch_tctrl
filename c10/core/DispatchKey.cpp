@@ -136,6 +136,8 @@ const char* toString(DispatchKey t) {
       return "AutogradNestedTensor";
     case DispatchKey::Checkpoint:
       return "Checkpoint";
+    case DispatchKey::SparseCheckpoint:
+      return "SparseCheckpoint";
     case DispatchKey::Tracer:
       return "Tracer";
 
@@ -333,6 +335,7 @@ c10::DispatchKey parseDispatchKey(const std::string& k) {
       {"PrivateUse2", c10::DispatchKey::PrivateUse2},
       {"PrivateUse3", c10::DispatchKey::PrivateUse3},
       {"Checkpoint", c10::DispatchKey::Checkpoint},
+      {"SparseCheckpoint", c10::DispatchKey::SparseCheckpoint},
 
       {"QuantizedCPU", c10::DispatchKey::QuantizedCPU},
       {"QuantizedCUDA", c10::DispatchKey::QuantizedCUDA},

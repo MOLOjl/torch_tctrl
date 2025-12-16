@@ -345,13 +345,14 @@ MakeRawResult make_raw(const rematerialize_function_t& remat_f,
     /// 这里最终会调用fill(t)
     auto e = intrusive_ptr<External>::make(t, alias_pool, remat); // bind external for t
 
+
+
+#ifdef DEBUG_MODE
     if(pm->if_in_fix_tids(e->value->id)) { // TODO: 宏定义控制
       // std::cout << "[in fix] " << e->value->id << "\n";
       pm->insert_locked(device_id, e->value);
     }
-
-
-#ifdef DEBUG_MODE
+    
     if(record_p2ap_actions) {
       if(pm->if_inp2ap(addr)) {
         std::cout << "[INSERT AP MISS]" << reinterpret_cast<void*>(addr) << "\n";

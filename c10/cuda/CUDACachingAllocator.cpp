@@ -1596,14 +1596,13 @@ public:
       return lhs->blocks.size() < rhs->blocks.size();
     });
 
+#ifdef DEBUG_MODE
     if(c10::dtb::record_move_defrag)
       std::cout << "[CHECK SORTED size:" << need_size << "] sorted frag_ratio:";
+#endif
     SegmentTwin* target_seg = nullptr;
     for(auto& seg: candidates_segments) {
-      if(c10::dtb::record_move_defrag)
-        std::cout << "(" << seg->frag_ratio << ", " << seg->blocks.size() 
-          << ", " << seg->allocated_size << ", " << (*seg->blocks.begin())->ptr << ") ";
-
+      
       if(seg->frag_ratio == 1) {
         target_seg = nullptr;
         break;
@@ -1615,25 +1614,10 @@ public:
       }
 
     }
-#ifdef DEBUG_MODE
-    if(c10::dtb::record_move_defrag)
-      std::cout << "\n";
     size_t before_mv = c10::dtb::current_memory(device);
     size_t allocted_size_in = 0;
-#endif
-    // if(target_seg->frag_ratio < 0.6 || target_seg->frag_ratio == 1.f) return false;
     if(!target_seg) return false;    /// TODO: if cancel the move when the frag ratio is at a low level 
     
-    if(c10::dtb::record_move_defrag) {
-      std::string seg_stat = "";
-      for(auto& bit: target_seg->blocks) {  // 把是否分配的情况转换为字符串
-        if(bit->allocated) seg_stat += "1";
-        else seg_stat += "0";
-      }
-      std::cout << "move_for_defrag choosed frag: total-" << target_seg->total_size 
-        << ", alloc-" << target_seg->allocated_size << ", frag_ratio: " << target_seg->frag_ratio 
-        << ", stat: " << seg_stat << ", addr: " << (*target_seg->blocks.begin())->ptr << std::endl;
-    }
     allocted_size_in = move_segment_to_others(target_seg);
 #ifdef DEBUG_MODE
     if(c10::dtb::record_move_defrag){
@@ -6593,7 +6577,11 @@ class NativeCachingAllocator : public CUDAAllocator {
         "Allocator not initialized for device ",
         device,
         ": did you call init?");
+    // time_t begin = std::chrono::system_clock::now();
     Block* block = device_allocator[device]->malloc(device, size, stream);
+    // time_t end = std::chrono::system_clock::now();
+    // auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    // std::cout << "[alloc]" << time_cost << "us" << std::endl;
     add_allocated_block(block);
     *devPtr = (void*)block->ptr;
     const c10::impl::PyInterpreter* interp = c10::impl::GPUTrace::get_trace();
@@ -6607,6 +6595,7 @@ class NativeCachingAllocator : public CUDAAllocator {
     if (!ptr) {
       return;
     }
+    // time_t begin = std::chrono::system_clock::now();
     Block* block = get_allocated_block(ptr, true /* remove */);
     if (!block) {
       TORCH_CHECK(false, "invalid device pointer: ", ptr);
@@ -6617,6 +6606,9 @@ class NativeCachingAllocator : public CUDAAllocator {
           reinterpret_cast<uintptr_t>(block->ptr));
     }
     device_allocator[block->device]->free(block);
+    // time_t end = std::chrono::system_clock::now();
+    // auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    // std::cout << "[free]" << time_cost << "us" << std::endl;
   }
 
   void setMemoryFraction(double fraction, int device) override {

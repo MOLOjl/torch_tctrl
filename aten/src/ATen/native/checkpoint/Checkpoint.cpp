@@ -245,13 +245,6 @@ Tensor& checkpoint_binary_cross_entropy_out(const Tensor& input, const Tensor& t
   return loss;
 }
 
-Tensor checkpoint_binary_cross_entropy_backward(const Tensor& a, const Tensor& b, const Tensor& c, const Tensor& d, long e) { 
-  rematerialize_function_t rt =
-    [=](const Tensors& vec) -> Tensors {
-      return {at::binary_cross_entropy_backward(vec.at(0), vec.at(1), vec.at(2), vec.at(3), e)};
-    };
-  return CheckpointTensorImpl::make("binary_cross_entropy_backward", rt, {a, b, c, d})[0];
-}
 
 // inline at::Tensor & binary_cross_entropy_backward_outf(const at::Tensor & grad_output, const at::Tensor & self, const at::Tensor & target, const c10::optional<at::Tensor> & weight, int64_t reduction, at::Tensor & grad_input)
 Tensor& checkpoint_binary_cross_entropy_backward_out(const Tensor& grad, const Tensor& input, const Tensor& target, const c10::optional<Tensor>& weight_opt, int64_t reduction, Tensor& grad_input) {
@@ -323,6 +316,60 @@ std::tuple<Tensor, Tensor, Tensor> checkpoint_cudnn_batch_norm_backward(at::Tens
   const Tensor& g_ = c10::value_or_else(g, [] {return Tensor();});
   auto ret = CheckpointTensorImpl::make("cudnn_batch_norm_backward", rt, {a, b, c, d_, e_, f_, g_, i});
   return {ret[0], ret[1], ret[2]};
+}
+
+/// ['aten::lstm', 'std::tuple<at::Tensor,at::Tensor,at::Tensor>', 'lstm', '(const at::Tensor & input, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional, bool batch_first)']
+std::tuple<at::Tensor,at::Tensor,at::Tensor> checkpoint_lstm(const at::Tensor & input, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional, bool batch_first) {
+  Tensors inputs;
+  inputs.push_back(input);
+  for (const auto i : c10::irange(hx.size())) {
+    inputs.push_back(hx[i]);
+  }
+  for (const auto i : c10::irange(params.size())) {
+    inputs.push_back(params[i]);
+  }
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      Tensors hx_ = {vec.begin() + 1, vec.begin() + 1 + hx.size()};
+      Tensors params_ = {vec.begin() + 1 + hx.size(), vec.end()};
+      auto ret = at::lstm(vec.at(0), at::TensorList(hx_), 
+          at::TensorList(params_), has_biases, num_layers, dropout, train, bidirectional, batch_first);
+      return {std::get<0>(ret), std::get<1>(ret), std::get<2>(ret)};
+    };
+  auto ret = CheckpointTensorImpl::make("aten::lstm", rt, inputs);
+  return {ret[0], ret[1], ret[2]};
+}
+
+/// ['aten::lstm', 'std::tuple<at::Tensor,at::Tensor,at::Tensor>', 'lstm', '(const at::Tensor & data, const at::Tensor & batch_sizes, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional)']
+std::tuple<at::Tensor,at::Tensor,at::Tensor> checkpoint_lstm_data(const at::Tensor & data, const at::Tensor & batch_sizes, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional) {
+  Tensors inputs;
+  inputs.push_back(data);
+  inputs.push_back(batch_sizes);
+  for (const auto i : c10::irange(hx.size())) {
+    inputs.push_back(hx[i]);
+  }
+  for (const auto i : c10::irange(params.size())) {
+    inputs.push_back(params[i]);
+  }
+  
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      Tensors hx_ = {vec.begin() + 2, vec.begin() + 2 + hx.size()};
+      Tensors params_ = {vec.begin() + 2 + hx.size(), vec.end()};
+      auto ret = at::lstm(vec.at(0), vec.at(1), at::TensorList(hx_), at::TensorList(params_), has_biases, num_layers, dropout, train, bidirectional);
+      return {std::get<0>(ret), std::get<1>(ret), std::get<2>(ret)};
+    };
+  auto ret = CheckpointTensorImpl::make("aten::lstm", rt, inputs);
+  return {ret[0], ret[1], ret[2]};
+}
+
+/// ['aten::logical_and', 'at::Tensor', 'logical_and', '(const at::Tensor & self, const at::Tensor & other)']
+at::Tensor checkpoint_logical_and(const at::Tensor & self, const at::Tensor & other) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      return {at::logical_and(vec.at(0), vec.at(1))};
+    };
+  return CheckpointTensorImpl::make("aten::logical_and", rt, {self, other})[0];
 }
 
 // Tensor checkpoint_as_strided(const Tensor& a, c10::ArrayRef<long> b, c10::ArrayRef<long> c, c10::optional<long> d) {
@@ -3211,6 +3258,15 @@ at::Tensor checkpoint_mm(const at::Tensor & self, const at::Tensor & mat2) {
   return CheckpointTensorImpl::make("aten::mm", rt, {self, mat2})[0];
 }
 
+/// ['aten::mm', 'at::Tensor', 'mm', '(const at::Tensor & self, const at::Tensor & mat2)']
+at::Tensor sparse_checkpoint_mm(const at::Tensor & self, const at::Tensor & mat2) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      return {at::mm(vec.at(0), vec.at(1))};
+    };
+  return CheckpointTensorImpl::make("aten::mm", rt, {self, mat2})[0];
+}
+
 /// ['aten::mm.out', 'at::Tensor &', 'mm_out', '(at::Tensor & out, const at::Tensor & self, const at::Tensor & mat2)']
 at::Tensor & checkpoint_mm_out(at::Tensor & out, const at::Tensor & self, const at::Tensor & mat2) {
   rematerialize_function_t rt =
@@ -3229,6 +3285,17 @@ at::Tensor & checkpoint_mm_outf(const at::Tensor & self, const at::Tensor & mat2
       return {at::mm_out(out, vec.at(0), vec.at(1))};
     };
   return CheckpointTensorImpl::make("aten::mm.out", rt, {self, mat2, out})[0];
+}
+
+/// ['aten::binary_cross_entropy_backward', 'at::Tensor', 'binary_cross_entropy_backward', '(const at::Tensor & grad_output, const at::Tensor & self, const at::Tensor & target, const c10::optional<at::Tensor> & weight={}, int64_t reduction=at::Reduction::Mean)']
+at::Tensor checkpoint_binary_cross_entropy_backward(const at::Tensor & grad_output, const at::Tensor & self, const at::Tensor & target, const c10::optional<at::Tensor> & weight, int64_t reduction) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      return {at::binary_cross_entropy_backward(vec.at(0), vec.at(1), vec.at(2), vec.at(3), reduction)};
+    };
+  c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight);
+  const Tensor& weight_ = *weight_maybe_owned;
+  return CheckpointTensorImpl::make("aten::binary_cross_entropy_backward", rt, {grad_output, self, target, weight_})[0];
 }
 
 /// ['aten::normal_functional', 'at::Tensor', 'normal_functional', '(const at::Tensor & self, double mean=0, double std=1, c10::optional<at::Generator> generator=c10::nullopt)']

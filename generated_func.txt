@@ -45,3 +45,54 @@ at::Tensor & checkpoint_upsample_bilinear2d_backward_outf(const at::Tensor & gra
   return CheckpointTensorImpl::make("aten::upsample_bilinear2d_backward_outf", rt, {grad_output, grad_input})[0];
 }
 
+/// ['aten::binary_cross_entropy_backward', 'at::Tensor', 'binary_cross_entropy_backward', '(const at::Tensor & grad_output, const at::Tensor & self, const at::Tensor & target, const c10::optional<at::Tensor> & weight={}, int64_t reduction=at::Reduction::Mean)']
+at::Tensor checkpoint_binary_cross_entropy_backward(const at::Tensor & grad_output, const at::Tensor & self, const at::Tensor & target, const c10::optional<at::Tensor> & weight, int64_t reduction) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      return {at::binary_cross_entropy_backward(vec.at(0), vec.at(1), vec.at(2), vec.at(3), reduction)};
+    };
+  c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight);
+  const Tensor& weight_ = *weight_maybe_owned;
+  return CheckpointTensorImpl::make("aten::binary_cross_entropy_backward", rt, {grad_output, self, target, weight_})[0];
+}
+
+/// ['aten::_cudnn_rnn_flatten_weight', 'at::Tensor', '_cudnn_rnn_flatten_weight', '(at::TensorList weight_arr, int64_t weight_stride0, int64_t input_size, int64_t mode, int64_t hidden_size, int64_t proj_size, int64_t num_layers, bool batch_first, bool bidirectional)']
+at::Tensor checkpoint__cudnn_rnn_flatten_weight(at::TensorList weight_arr, int64_t weight_stride0, int64_t input_size, int64_t mode, int64_t hidden_size, int64_t proj_size, int64_t num_layers, bool batch_first, bool bidirectional) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      return {at::_cudnn_rnn_flatten_weight(weight_arr, weight_stride0, input_size, mode, hidden_size, proj_size, num_layers, batch_first, bidirectional)};
+    };
+  return CheckpointTensorImpl::make("aten::_cudnn_rnn_flatten_weight", rt, {})[0];
+}
+
+/// ['aten::lstm', 'std::tuple<at::Tensor,at::Tensor,at::Tensor>', 'lstm', '(const at::Tensor & input, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional, bool batch_first)']
+std::tuple<at::Tensor,at::Tensor,at::Tensor> checkpoint_lstm(const at::Tensor & input, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional, bool batch_first) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      auto ret = at::lstm(vec.at(0), hx, params, has_biases, num_layers, dropout, train, bidirectional, batch_first);
+      return {std::get<0>(ret), std::get<1>(ret), std::get<2>(ret)};
+    };
+  auto ret = CheckpointTensorImpl::make("aten::lstm", rt, {input});
+  return {ret[0], ret[1], ret[2]};
+}
+
+/// ['aten::lstm', 'std::tuple<at::Tensor,at::Tensor,at::Tensor>', 'lstm', '(const at::Tensor & data, const at::Tensor & batch_sizes, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional)']
+std::tuple<at::Tensor,at::Tensor,at::Tensor> checkpoint_lstm(const at::Tensor & data, const at::Tensor & batch_sizes, at::TensorList hx, at::TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      auto ret = at::lstm(vec.at(0), vec.at(1), hx, params, has_biases, num_layers, dropout, train, bidirectional);
+      return {std::get<0>(ret), std::get<1>(ret), std::get<2>(ret)};
+    };
+  auto ret = CheckpointTensorImpl::make("aten::lstm", rt, {data, batch_sizes});
+  return {ret[0], ret[1], ret[2]};
+}
+
+/// ['aten::logical_and', 'at::Tensor', 'logical_and', '(const at::Tensor & self, const at::Tensor & other)']
+at::Tensor checkpoint_logical_and(const at::Tensor & self, const at::Tensor & other) {
+  rematerialize_function_t rt =
+    [=](const Tensors& vec) -> Tensors {
+      return {at::logical_and(vec.at(0), vec.at(1))};
+    };
+  return CheckpointTensorImpl::make("aten::logical_and", rt, {self, other})[0];
+}
+

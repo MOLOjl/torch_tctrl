@@ -94,6 +94,7 @@ class DispatchKey(Enum):
     AutogradFunctionality = auto()
     AutogradNestedTensor = auto()
     Checkpoint = auto()
+    SparseCheckpoint = auto()
     Tracer = auto()
     Autocast = auto()
     Batched = auto()
@@ -246,6 +247,7 @@ dispatch_keys = [
     DispatchKey.NestedTensorCPU,
     DispatchKey.NestedTensorCUDA,
     DispatchKey.Checkpoint,
+    DispatchKey.SparseCheckpoint,
     # Meta is a magic key: it is automatically generated for structured
     # kernels
     DispatchKey.Meta,

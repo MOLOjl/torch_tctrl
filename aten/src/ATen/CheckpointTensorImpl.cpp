@@ -273,9 +273,11 @@ void set_backward_flag(){
 //   pm->set_during_backward(true);
 // #else
   during_backward = true;
+#ifdef DEBUG_MODE
   if(record_op_recs) {
     c10::dtb::DTRLogAlias("begin_backward", 1);
   }
+#endif
 // #ifdef PROACTIVE_REMAT //[deprecated]
   // auto *pm = getDTBPoolManager();
   // pm->push_batch_evicted_tensors(c10::cuda::current_device());
@@ -317,9 +319,11 @@ void unset_backward_flag(){
 //   pm->set_during_backward(false);
 // #else
   during_backward = false;
+#ifdef DEBUG_MODE
   if(record_op_recs) {
     c10::dtb::DTRLogAlias("end_backward", 0);
   }
+#endif
 #ifdef DCR_MANAGE
   c10::dtb::CheckpointTensorCell::reset_pool_counter();
 #endif

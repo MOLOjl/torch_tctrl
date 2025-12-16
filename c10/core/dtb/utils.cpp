@@ -48,7 +48,7 @@ size_t move_defrag_max_size[8] = {0};
 std::vector<void*> move_defrag_seg_ptr = std::vector<void*>(8, nullptr);
 
 #ifdef DEBUG_MODE
-constexpr const bool record_er_counts = false;        // 驱逐&重物化次数
+constexpr const bool record_er_counts = true;        // 驱逐&重物化次数
 constexpr const bool record_op_recs = false;          // 是否记录op历史
 constexpr const bool record_cpevict_recs = false;
 constexpr const bool record_remat_recs = false;

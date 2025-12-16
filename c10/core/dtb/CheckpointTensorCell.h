@@ -16,16 +16,14 @@ namespace dtb{
 using at::Tensor;
 
 struct CheckpointTensorCell : intrusive_ptr_target {
-#ifdef DEBUG_MODE
   long id = gen_counter();
-  // static long counter;
   static long gen_counter() {
     return tid_counter++;
   }
   std::string counter_name(){
     return std::string("x") + std::to_string(id);
   }
-#endif
+
 #ifdef DCR_MANAGE
   static size_t pool_counter;
   static size_t gen_pool_counter() {

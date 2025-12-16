@@ -439,6 +439,6 @@ def single_opsfile_func_gen(path):
 
 if __name__ == '__main__':
     # single_func_gen("""at::Tensor & normal_(double mean, double std, c10::optional<at::Generator> generator)""")
-    single_func_gen("""at::Tensor & upsample_bilinear2d_backward_outf(const at::Tensor & grad_output, at::IntArrayRef output_size, at::IntArrayRef input_size, bool align_corners, c10::optional<double> scales_h, c10::optional<double> scales_w, at::Tensor & grad_input)""")
+    single_func_gen("""at::Tensor logical_and(const at::Tensor & self, const at::Tensor & other)""")
     # single_opsfile_func_gen('/data/wangzehua/pytorch_dtb/torch/include/ATen/ops/pow.h')
     # all_func_sign_and_register()

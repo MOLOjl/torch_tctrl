@@ -980,6 +980,7 @@
     CPU: binary_cross_entropy_backward_cpu
     CUDA: binary_cross_entropy_backward_cuda
     MPS: binary_cross_entropy_backward_mps
+    Checkpoint: checkpoint_binary_cross_entropy_backward
 - func: binary_cross_entropy_backward.grad_input(Tensor grad_output, Tensor self,
     Tensor target, Tensor? weight=None, int reduction=Mean, *, Tensor(a!) grad_input)
     -> Tensor(a!)
@@ -3629,6 +3630,7 @@
     SparseCPU, SparseCUDA: _sparse_mm
     SparseCsrCPU, SparseCsrCUDA: _sparse_csr_mm
     Checkpoint: checkpoint_mm
+    SparseCheckpoint: sparse_checkpoint_mm
   tags: core
 - func: mm.out(Tensor self, Tensor mat2, *, Tensor(a!) out) -> Tensor(a!)
   structured: true
@@ -6808,6 +6810,8 @@
 - func: lstm.input(Tensor input, Tensor[] hx, Tensor[] params, bool has_biases, int
     num_layers, float dropout, bool train, bool bidirectional, bool batch_first) ->
     (Tensor, Tensor, Tensor)
+  dispatch:
+    Checkpoint: checkpoint_lstm
   tags: nondeterministic_seeded
 - func: lstm.data(Tensor data, Tensor batch_sizes, Tensor[] hx, Tensor[] params, bool
     has_biases, int num_layers, float dropout, bool train, bool bidirectional) ->

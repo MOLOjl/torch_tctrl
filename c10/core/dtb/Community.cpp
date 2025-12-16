@@ -39,7 +39,6 @@ size_t SingletonCommunity::lock_borders() {
       count++;
       if(count>DCR_LOCK_TOPS) break;
       dgnode->lock_value();
-      dcr_lock_counts++;
       res += dgnode->value.lock()->pool->memory;
     }
     is_lock = true;
