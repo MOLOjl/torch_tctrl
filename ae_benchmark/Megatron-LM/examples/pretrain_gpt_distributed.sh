@@ -2,10 +2,12 @@
 
 mem_budget=${1:-7.6}
 
+echo "set mem_budget $mem_budget"
+
 export CUDA_DEVICE_MAX_CONNECTIONS=1    # necessary for multi node
 # export CUDA_VISIBLE_DEVICES=7
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
-# export CUDA_VISIBLE_DEVICES=4,5,6,7
+# export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 # export RECORD_MEM_SNAPSHOT=1
 # export SNAP_FILE_NAME="pretrain_gpt_17B_mb4_pp4_b3_probatch_defaultstream"
 # export SNAP_FILE_NAME="pretrain_gpt_350M_mb4_pp4_interleaved1f1b"
@@ -15,7 +17,7 @@ export SNAP_FILE_NAME="pretrain_gpt_350M_TP${TP_SIZE}_PP${PP_SIZE}_MB${MB}_GB${G
 # export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 
-GPUS_PER_NODE=8
+GPUS_PER_NODE=4
 # Change for multinode config
 MASTER_ADDR=localhost
 MASTER_PORT=22234
@@ -38,7 +40,7 @@ DISTRIBUTED_ARGS="
     --master_port $MASTER_PORT
 "
 
-TP_SIZE=2
+TP_SIZE=1
 PP_SIZE=4
 # VP_SIZE=3
 MB=4

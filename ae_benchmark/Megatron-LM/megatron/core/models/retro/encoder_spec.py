@@ -16,12 +16,12 @@ from megatron.core.models.retro.encoder_attention import (
 from megatron.core.tensor_parallel.layers import ColumnParallelLinear, RowParallelLinear
 from megatron.core.transformer import ModuleSpec
 from megatron.core.transformer.attention import CrossAttentionSubmodules
-# from megatron.core.transformer.custom_layers.transformer_engine import (
-#     TEColumnParallelLinear,
-#     TEDotProductAttention,
-#     TENorm,
-#     TERowParallelLinear,
-# )
+from megatron.core.transformer.custom_layers.transformer_engine import (
+    TEColumnParallelLinear,
+    TEDotProductAttention,
+    TENorm,
+    TERowParallelLinear,
+)
 from megatron.core.transformer.dot_product_attention import DotProductAttention
 from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.transformer.mlp import MLP, MLPSubmodules
@@ -40,25 +40,25 @@ def get_retro_encoder_layer_te_spec() -> ModuleSpec:
         A module spec if Transformer Engine modules.
     """
     spec = get_gpt_layer_with_transformer_engine_spec()
-    # spec.submodules.pre_cross_attn_layernorm = TENorm
-    # spec.submodules.cross_attention = ModuleSpec(
-    #     module=RetroEncoderCrossAttention,
-    #     params={"attn_mask_type": AttnMaskType.padding,},
-    #     submodules=CrossAttentionSubmodules(
-    #         linear_q=TEColumnParallelLinear,
-    #         linear_kv=TEColumnParallelLinear,
-    #         core_attention=TEDotProductAttention,
-    #         linear_proj=TERowParallelLinear,
-    #     ),
-    # )
+    spec.submodules.pre_cross_attn_layernorm = TENorm
+    spec.submodules.cross_attention = ModuleSpec(
+        module=RetroEncoderCrossAttention,
+        params={"attn_mask_type": AttnMaskType.padding,},
+        submodules=CrossAttentionSubmodules(
+            linear_q=TEColumnParallelLinear,
+            linear_kv=TEColumnParallelLinear,
+            core_attention=TEDotProductAttention,
+            linear_proj=TERowParallelLinear,
+        ),
+    )
     spec.submodules.cross_attn_bda = ModuleSpec(module=RetroEncoderBiasDropoutAdd)
-    # spec.submodules.pre_mlp_layernorm = ModuleSpec(module=RetroEncoderLayerNorm, submodules=TENorm,)
-    # spec.submodules.mlp = ModuleSpec(
-    #     module=MLP,
-    #     submodules=MLPSubmodules(
-    #         linear_fc1=TEColumnParallelLinear, linear_fc2=TERowParallelLinear,
-    #     ),
-    # )
+    spec.submodules.pre_mlp_layernorm = ModuleSpec(module=RetroEncoderLayerNorm, submodules=TENorm,)
+    spec.submodules.mlp = ModuleSpec(
+        module=MLP,
+        submodules=MLPSubmodules(
+            linear_fc1=TEColumnParallelLinear, linear_fc2=TERowParallelLinear,
+        ),
+    )
     return spec
 
 
@@ -135,10 +135,10 @@ def get_retro_encoder_block_spec(
     for spec in (gpt_layer_spec, retro_layer_spec):
         spec.params["hidden_dropout"] = config.retro_encoder_hidden_dropout
         spec.submodules.self_attention.params["attn_mask_type"] = AttnMaskType.padding
-        # spec.submodules.self_attention.submodules.core_attention = ModuleSpec(
-        #     module=TEDotProductAttention if use_transformer_engine else DotProductAttention,
-        #     params={"attention_dropout": config.retro_encoder_attention_dropout,},
-        # )
+        spec.submodules.self_attention.submodules.core_attention = ModuleSpec(
+            module=TEDotProductAttention if use_transformer_engine else DotProductAttention,
+            params={"attention_dropout": config.retro_encoder_attention_dropout,},
+        )
 
     layer_specs = []
     for layer_number in range(1, num_layers + 1):

@@ -19,12 +19,12 @@ from megatron.core.models.retro.encoder_spec import get_retro_encoder_block_spec
 from megatron.core.tensor_parallel.layers import ColumnParallelLinear, RowParallelLinear
 from megatron.core.transformer import ModuleSpec
 from megatron.core.transformer.attention import CrossAttentionSubmodules
-# from megatron.core.transformer.custom_layers.transformer_engine import (
-#     TEColumnParallelLinear,
-#     TEDotProductAttention,
-#     TENorm,
-#     TERowParallelLinear,
-# )
+from megatron.core.transformer.custom_layers.transformer_engine import (
+    TEColumnParallelLinear,
+    TEDotProductAttention,
+    TENorm,
+    TERowParallelLinear,
+)
 from megatron.core.transformer.dot_product_attention import DotProductAttention
 from megatron.core.transformer.transformer_block import (
     TransformerBlockSubmodules,
@@ -50,17 +50,17 @@ def get_retro_decoder_layer_te_spec(
         A module spec with Transformer Engine modules.
     """
     spec = get_gpt_layer_with_transformer_engine_spec()
-    # spec.submodules.pre_cross_attn_layernorm = TENorm
-    # spec.submodules.cross_attention = ModuleSpec(
-    #     module=RetroDecoderCrossAttention,
-    #     params={"encoder_block_spec": encoder_block_spec,},
-    #     submodules=CrossAttentionSubmodules(
-    #         linear_q=TEColumnParallelLinear,
-    #         linear_kv=TEColumnParallelLinear,
-    #         core_attention=TEDotProductAttention,
-    #         linear_proj=TERowParallelLinear,
-    #     ),
-    # )
+    spec.submodules.pre_cross_attn_layernorm = TENorm
+    spec.submodules.cross_attention = ModuleSpec(
+        module=RetroDecoderCrossAttention,
+        params={"encoder_block_spec": encoder_block_spec,},
+        submodules=CrossAttentionSubmodules(
+            linear_q=TEColumnParallelLinear,
+            linear_kv=TEColumnParallelLinear,
+            core_attention=TEDotProductAttention,
+            linear_proj=TERowParallelLinear,
+        ),
+    )
     spec.submodules.cross_attn_bda = ModuleSpec(module=RetroDecoderBiasDropoutAdd)
     return spec
 

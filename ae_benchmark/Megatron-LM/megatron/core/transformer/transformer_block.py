@@ -13,10 +13,10 @@ from megatron.core.dist_checkpointing.mapping import ShardedStateDict
 from megatron.core.dist_checkpointing.utils import replace_prefix_for_sharding
 from megatron.core.fusions.fused_layer_norm import FusedLayerNorm
 from megatron.core.packed_seq_params import PackedSeqParams
-# from megatron.core.transformer.custom_layers.transformer_engine import (
-#     TENorm,
-#     get_cpu_offload_context,
-# )
+from megatron.core.transformer.custom_layers.transformer_engine import (
+    TENorm,
+    get_cpu_offload_context,
+)
 from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.transformer.module import MegatronModule
 from megatron.core.transformer.spec_utils import ModuleSpec, build_module
@@ -111,26 +111,25 @@ class TransformerBlock(MegatronModule):
 
         self.checkpoint_core_attention = self.config.recompute_granularity == 'selective'
 
-        # if get_cpu_offload_context is not None:
-        #     (
-        #         self.offload_context,
-        #         self.group_prefetch_offload_commit_async,
-        #     ) = get_cpu_offload_context(
-        #         self.config.cpu_offloading,
-        #         self.config.cpu_offloading_num_layers,
-        #         self.config.cpu_offloading_activations,
-        #         self.config.cpu_offloading_weights,
-        #     )
-        #     self.config._cpu_offloading_context = (
-        #         self.offload_context if self.config.cpu_offloading else None
-        #     )
-        # else:
-        #     assert (
-        #         self.config.cpu_offloading == False
-        #     ), "CPU Offloading is enabled when TE is not present"
-        # pyf debug
-        self.offload_context, self.group_prefetch_offload_commit_async = nullcontext(), None
-        self.config._cpu_offloading_context = None
+        if get_cpu_offload_context is not None:
+            (
+                self.offload_context,
+                self.group_prefetch_offload_commit_async,
+            ) = get_cpu_offload_context(
+                self.config.cpu_offloading,
+                self.config.cpu_offloading_num_layers,
+                self.config.cpu_offloading_activations,
+                self.config.cpu_offloading_weights,
+            )
+            self.config._cpu_offloading_context = (
+                self.offload_context if self.config.cpu_offloading else None
+            )
+        else:
+            assert (
+                self.config.cpu_offloading == False
+            ), "CPU Offloading is enabled when TE is not present"
+            self.offload_context, self.group_prefetch_offload_commit_async = nullcontext(), None
+            self.config._cpu_offloading_context = None
 
         self._build_layers()
         self.num_layers_per_pipeline_rank = len(self.layers)
@@ -169,13 +168,12 @@ class TransformerBlock(MegatronModule):
         #     self.layers = torch.nn.ModuleList([build_layer(i + 1 + offset) for i in range(self.num_layers)])
 
         if self.post_process and self.post_layer_norm:
-            pass
             # Final layer norm before output.
-            # self.final_layernorm = TENorm(
-            #     config=self.config,
-            #     hidden_size=self.config.hidden_size,
-            #     eps=self.config.layernorm_epsilon,
-            # )
+            self.final_layernorm = TENorm(
+                config=self.config,
+                hidden_size=self.config.hidden_size,
+                eps=self.config.layernorm_epsilon,
+            )
 
     def _get_layer(self, layer_number: int):
         return self.layers[layer_number]
