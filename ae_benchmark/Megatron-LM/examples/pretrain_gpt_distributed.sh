@@ -46,7 +46,7 @@ PP_SIZE=4
 MB=4
 GLOBAL_BATCH=128
 
-MAX_ITERS=20 # 500000 14370 for multi vs 11962 for org
+MAX_ITERS=5 # 500000 14370 for multi vs 11962 for org
 LR_WARMUP_STEPS=1
 
 ### FlashDTR config

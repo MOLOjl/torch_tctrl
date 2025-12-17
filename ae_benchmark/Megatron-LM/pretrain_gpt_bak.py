@@ -96,6 +96,7 @@ def model_provider(pre_process=True, post_process=True) -> Union[GPTModel, megat
     #     model._apply(lambda v: v.detach().checkpoint(True))
     return model
 
+
 def get_batch(data_iterator):
     """Generate a batch."""
 

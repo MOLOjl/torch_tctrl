@@ -805,11 +805,21 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
             total_loss_dict[nan_iters_key])
         log_string += ' max_alloc: {:2f}MB |'.format(torch.cuda.max_memory_allocated()/1024/1024)
         log_string += ' max_reserve: {:2f}MB |'.format(torch.cuda.max_memory_reserved()/1024/1024)
-        log_string += ' frag: {:3f} |'.format(1 - torch.cuda.max_memory_allocated() / torch.cuda.max_memory_reserved())
+        mem_frag = format(1 - torch.cuda.max_memory_allocated() / torch.cuda.max_memory_reserved(), ".3f")
+        log_string += f' frag: {mem_frag} |'
         total_loss_dict[advanced_iters_key] = 0
         total_loss_dict[skipped_iters_key] = 0
         total_loss_dict[nan_iters_key] = 0
         print_rank_0(log_string)
+        # pyf_debug
+        if torch.distributed.is_initialized():
+            if torch.distributed.get_rank() == 0:
+                log_file = os.environ.get('LOG_FILE')
+                if(log_file):
+                    row = ["iter", iteration, "time(ms)", elapsed_time_per_iteration*1000, "frag", mem_frag]
+                    with open(log_file, "a", encoding="utf-8") as f:
+                        print(",".join(map(str, row)), file=f)
+        
         if report_memory_flag and learning_rate > 0.:
             # Report memory after optimizer state has been initialized.
             if torch.distributed.get_rank() == 0:
