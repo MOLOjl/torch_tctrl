@@ -356,17 +356,6 @@ void log_dtr_statics(){
   size_t recursion_depth = 0;
   size_t dev_count = 0;
 
-  for(auto& rd : c10::dtb::Rematerializer::recursion_depth) {
-    if(rd.size() > 0) {
-      size_t sum = std::accumulate(rd.begin(), rd.end(), size_t{0});
-      recursion_depth += sum / rd.size();
-      dev_count++;
-    }
-  }
-  if(dev_count > 0)
-    recursion_depth = recursion_depth / dev_count;
-  recursion_depth = remat_counts;
-
   // E2_LOG LOG_FILE
   const char* e1 = std::getenv("E1_LOG");
   const char* e2 = std::getenv("E2_LOG");
@@ -375,8 +364,6 @@ void log_dtr_statics(){
   if (e1) {
     std::ofstream ofs(log_file, std::ios::app);
     ofs << "remat_counts," << remat_counts;
-    ofs << "remat_counts," << remat_counts;
-    // ofs << "recursion_depth," << recursion_depth << "\n";
   }
 
 #endif

@@ -251,8 +251,11 @@ extern COMMON_API bool defrag_flag[8];
 extern COMMON_API std::unordered_map<cudaStream_t, int>* stream_to_label;
 
 #ifdef DEBUG_MODE
-extern const bool record_er_counts;        // 驱逐&重物化次数
-extern const bool record_op_recs;          // 是否记录op历史
+// extern const bool record_er_counts;        // 驱逐&重物化次数
+// extern const bool record_op_recs;          // 是否记录op历史
+extern bool record_er_counts;        // 驱逐&重物化次数
+extern bool record_op_recs;          // 是否记录op历史
+
 extern const bool record_cpevict_recs;     // 记录驱逐记录
 extern const bool record_fragmentation;    // 记录碎片化和内存占用数据
 extern const bool record_lifecycle;        // 记录ap生命周期计数分布

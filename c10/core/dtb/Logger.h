@@ -6,6 +6,8 @@
 #include <third_party/kineto/libkineto/third_party/dynolog/third_party/json/single_include/nlohmann/json.hpp>
 #include <unistd.h>
 
+#include <c10/core/dtb/comm_heads.h>
+
 namespace c10 {
 namespace dtb {
 

@@ -20,12 +20,7 @@ struct Rematerializer : intrusive_ptr_target {
   // because when multiple output of a rematerializer get evicted,
   // we only want to count the compute cost once.
   ecn_ptr ecn;
-  // pyf debug
-  inline static std::array<bool, 8> remat_threshold = {true,true,true,true,true,true,true,true};
-  inline static std::array<std::vector<size_t>, 8> recursion_depth;
-  // inline static bool remat_threshold[8] = {};
-  // inline static std::array<std::vector<size_t>, 8> recursion_depth;
-
+  
   Rematerializer(const Unsafe&,
                  const rematerialize_function_t& func,
                  const strongs& inputs,
