@@ -812,13 +812,14 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
         total_loss_dict[nan_iters_key] = 0
         print_rank_0(log_string)
         # pyf_debug
-        if torch.distributed.is_initialized():
-            if torch.distributed.get_rank() == 0:
-                log_file = os.environ.get('LOG_FILE')
-                if(log_file):
-                    row = ["iter", iteration, "time(ms)", elapsed_time_per_iteration*1000, "frag", mem_frag]
-                    with open(log_file, "a", encoding="utf-8") as f:
-                        print(",".join(map(str, row)), file=f)
+        if(os.environ.get('E1_LOG')):
+            if torch.distributed.is_initialized():
+                if torch.distributed.get_rank() == 0:
+                    log_file = os.environ.get('LOG_FILE')
+                    if(log_file):
+                        row = ["iter", iteration, "time(ms)", elapsed_time_per_iteration*1000, "frag", mem_frag]
+                        with open(log_file, "a", encoding="utf-8") as f:
+                            print(",".join(map(str, row)), file=f)
         
         if report_memory_flag and learning_rate > 0.:
             # Report memory after optimizer state has been initialized.

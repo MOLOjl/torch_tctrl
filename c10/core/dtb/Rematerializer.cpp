@@ -79,7 +79,26 @@ void Rematerializer::remat() {
   }
 #endif
 
-  auto ret = func(ts);
+  // auto dev_id = static_cast<int>(ts[0].device().index());
+  // // 判断是否是重物化的起点
+  // bool is_threshold = remat_threshold[dev_id];
+  // if(is_threshold) {
+  //   // 如果是，设置对应的remat_threshold为假，
+  //   remat_threshold[dev_id] = false;
+  //   // 开始记录递归深度（其实不是深度而是引发的链式递归重物化的次数）
+  //   recursion_depth[dev_id].push_back(0);
+  // }
+  // else {
+  //   // 如果不是重物化起点，对应的递归深度 ++
+  //   auto& vec = recursion_depth[dev_id];
+  //   recursion_depth[dev_id].back() += 1;
+  // }
+  // // 执行重物化方程
+  // auto ret = func(ts);
+  // if(is_threshold) {
+  //   // 重置一下
+  //   remat_threshold[dev_id] = true;
+  // }
 
 #ifdef ORIG_EVICT
   if(COST_FIRST_EVICT){

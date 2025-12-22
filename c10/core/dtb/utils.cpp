@@ -42,10 +42,10 @@ bool store_in_special_pool[8] = {false};
 bool defrag_flag[8] = {false};
 
 #ifdef DEBUG_MODE
-constexpr const bool record_er_counts = false;        // 驱逐&重物化次数
-constexpr const bool record_op_recs = false;          // 是否记录op历史
+constexpr const bool record_er_counts = true;        // 驱逐&重物化次数
+constexpr const bool record_op_recs = true;          // 是否记录op历史
 constexpr const bool record_cpevict_recs = false;
-constexpr const bool record_fragmentation = false;    // 记录碎片化和内存占用数据
+constexpr const bool record_fragmentation = true;    // 记录碎片化和内存占用数据
 constexpr const bool record_lifecycle = false;        // 记录ap生命周期计数分布
 constexpr const bool record_ap_cost = false;          // 记录ap的cost分布
 constexpr const bool record_dependcy = false;

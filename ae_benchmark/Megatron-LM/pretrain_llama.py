@@ -255,9 +255,18 @@ if __name__ == "__main__":
              ModelType.encoder_or_decoder,
              forward_step,
              args_defaults={'tokenizer_type': 'GPT2BPETokenizer'})
-        if RECORD_MEM_SNAPSHOT:
-            local_rank = torch.distributed.get_rank()
-            torch.cuda.memory._dump_snapshot(snapshot_filename+'_'+str(local_rank)+".pickle")
+        
+        global_rank = torch.distributed.get_rank()
+        print(f"pretrain over, rank {global_rank}")
+
+        if USE_DTR:
+            torch.log_dtr_statics()
+
+        # bug, process can't finnish, so force exit.
+        os._exit(0)
+        # if RECORD_MEM_SNAPSHOT:
+        #     local_rank = torch.distributed.get_rank()
+        #     torch.cuda.memory._dump_snapshot(snapshot_filename+'_'+str(local_rank)+".pickle")
     except ChildFailedError as e:
         _, failure = e.get_first_failure()
         error_handler.dump_error_file(failure.error_file, failure.exitcode)

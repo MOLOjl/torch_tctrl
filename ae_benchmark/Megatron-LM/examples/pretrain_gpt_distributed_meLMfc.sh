@@ -52,7 +52,7 @@ MAX_ITERS=5 # 500000 14370 for multi vs 11962 for org
 LR_WARMUP_STEPS=1
 
 ### FlashDTR config
-export DTR_ENABLE=1
+export DTR_ENABLE=0
 export MEM_BUDGET=$mem_budget       # only budget > 0 can use RESIDUAL_DEGREE, otherwise reserve leak
 # 5.1 4.48 3.84 3.2 2.56 1.92
 export RESIDUAL_DEGREE=6
@@ -70,7 +70,7 @@ export COST_FIRST_EVICT=0
 # export LOG_CUDAAPI=1        # 记录累计的cuda api次数
 # export LOG_MEM_EVENTS=1        # 记录CUDA MEM事件
 
-USE_MEGATRON_LM_RC=0        # 是否启用Megatron-LM的重计算 1-selective 2-full
+USE_MEGATRON_LM_RC=2     # 是否启用Megatron-LM的重计算 1-selective 2-full
 
 # 模型配置
 model_spec="7.5B"
@@ -149,12 +149,39 @@ EXTRA_OPTIM_ARGS="
     --recompute-granularity selective
 "
 fi
+
+# 36 - []
+mem_budget_str="$mem_budget"
+# echo "mem_budget_str $mem_budget_str"
+declare -A rc_dict=(
+    ["2.2"]="1"
+    ["3.0"]="9"
+    ["3.7"]="7"
+    ["4.5"]="6"
+    ["5.2"]="4"
+    ["6.0"]="3"
+)
+if [[ -v rc_dict[$mem_budget_str] ]]; then
+    echo "value = ${rc_dict[$mem_budget_str]}"
+else
+    echo "mem_budget not valid"
+fi
+
+method="block"
+if [ "$value" = "1" ]; then
+    method="uniform"
+fi
+
+value=${rc_dict[$mem_budget_str]}
+
+echo "recompute-num-layers: $value"
+echo "method: $method"
 # recompute full
 if [ $USE_MEGATRON_LM_RC -eq 2 ]; then
 EXTRA_OPTIM_ARGS="
     --recompute-granularity full \
-    --recompute-method uniform \
-    --recompute-num-layers 1
+    --recompute-method $method \
+    --recompute-num-layers $value
 "
 fi
 
