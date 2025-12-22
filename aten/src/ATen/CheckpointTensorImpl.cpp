@@ -372,7 +372,7 @@ void log_dtr_statics(){
   const char* e2 = std::getenv("E2_LOG");
   const char* log_file = std::getenv("LOG_FILE");
 
-  if (e2 || e1) {
+  if (e1) {
     std::ofstream ofs(log_file, std::ios::app);
     ofs << "remat_counts," << remat_counts;
     ofs << "remat_counts," << remat_counts;
