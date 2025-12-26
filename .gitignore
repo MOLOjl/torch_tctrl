@@ -8,6 +8,8 @@
 
 ## PyTorch
 
+*.pickle
+*.log
 .coverage
 coverage.xml
 .dmypy.json
