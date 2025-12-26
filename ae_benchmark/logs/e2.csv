@@ -1,0 +1,9 @@
+mem_budge,0.5
+remat_counts,16698
+recursion_depth_total,16572,bwd_count,64,avg_recursion_depth,258
+remat_counts,4331
+recursion_depth_total,4231,bwd_count,64,avg_recursion_depth,66
+remat_counts,23361
+recursion_depth_total,23229,bwd_count,64,avg_recursion_depth,362
+remat_counts,2399
+recursion_depth_total,2349,bwd_count,64,avg_recursion_depth,36

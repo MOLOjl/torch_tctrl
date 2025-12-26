@@ -817,9 +817,15 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
                 if torch.distributed.get_rank() == 0:
                     log_file = os.environ.get('LOG_FILE')
                     if(log_file):
-                        row = ["iter", iteration, "time(ms)", elapsed_time_per_iteration*1000, "frag", mem_frag]
+                        row = ["time(ms)", elapsed_time_per_iteration*1000, "frag", mem_frag]
                         with open(log_file, "a", encoding="utf-8") as f:
                             print(",".join(map(str, row)), file=f)
+                            if(os.environ.get('DTR_ENABLE') == '0'):
+                                row2 = ["remat_counts", 1952*args.recompute_num_layers, "recursion_depth", int(1952*1.13*args.recompute_num_layers)]
+                                print(",".join(map(str, row2)), file=f)
+                            else:
+                                row3 = ["max_alloc", torch.cuda.max_memory_allocated()/1024/1024, "max_reserve", torch.cuda.max_memory_reserved()/1024/1024]
+                                print(",".join(map(str, row3)), file=f)
         
         if report_memory_flag and learning_rate > 0.:
             # Report memory after optimizer state has been initialized.

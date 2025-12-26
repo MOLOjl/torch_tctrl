@@ -81,6 +81,11 @@ void Rematerializer::remat() {
 
   auto ret = func(ts);
 
+  auto *pm = getDTBPoolManager();
+  auto dev_id = static_cast<int>(ts[0].device().index());
+  pm->remat_counter[dev_id] ++;
+  pm->recursion_depth_counter[dev_id] ++;
+
 #ifdef ORIG_EVICT
   if(COST_FIRST_EVICT){
   #ifdef MINIMAL_EVICT

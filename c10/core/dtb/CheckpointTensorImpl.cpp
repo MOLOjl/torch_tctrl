@@ -222,13 +222,14 @@ inline void release_external_of_nosource_tensor(const strong& s, const std::stri
 static size_t cur_op_counts = 0;
 static constexpr size_t evict_num = 2;
 #endif
-// remat take a single vector of tensors,
-// while there are two vector, one storing nonconstants and one storing constants.
-// the constants are small and they will not be considered for eviction.
-// however, we have to stitch the two vectors together to pass it in remat.
-// the size_t in constants decide the location to stitch them in, while input_values fill in the rest.
-MakeRawResult make_raw(const rematerialize_function_t& remat_f,
-                       const strongs& inputs, const std::string& name) {
+
+/* remat take a single vector of tensors,
+while there are two vector, one storing nonconstants and one storing constants.
+the constants are small and they will not be considered for eviction.
+however, we have to stitch the two vectors together to pass it in remat.
+the size_t in constants decide the location to stitch them in, while input_values fill in the rest. */
+
+MakeRawResult make_raw(const rematerialize_function_t& remat_f, const strongs& inputs, const std::string& name) {
   STATS.track("make_raw");
   #ifdef ARITHMETIC_TEST
   cur_op_counts++;
@@ -316,6 +317,10 @@ MakeRawResult make_raw(const rematerialize_function_t& remat_f,
       }
     }
     auto e = intrusive_ptr<External>::make(t, alias_pool, remat); // bind external for t
+
+    // pyf_debug
+    // lock tensors with fix tid
+    pm->may_be_insert_locked(device_id, e->value);
 
 #ifdef DEBUG_MODE
     if(trace_register_and_release){

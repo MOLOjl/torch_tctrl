@@ -27,13 +27,19 @@ void DTBCheckpointPool::init(int device_count) {
     peak_reserved_memory.resize(device_count);
     if_train_mode.resize(device_count);
     if_during_backward.resize(device_count);
+    locked_tids.resize(device_count);
+    recursion_depth_counter.resize(device_count);
+    remat_counter.resize(device_count);
     for (const auto i : c10::irange(size, device_count)) {
       device_dtbpool[i] = std::make_unique<CheckpointPool>();
       peak_allocated_memory[i] = 0;
       peak_reserved_memory[i] = 0;
       if_train_mode[i] = false;
       if_during_backward[i] = false;
+      recursion_depth_counter[i] = 0;
+      remat_counter[i] = 0;
     }
+    
   }
 }
 
@@ -552,6 +558,83 @@ void DTBCheckpointPool::set_during_backward(bool flag){
   }
 }
 
+void DTBCheckpointPool::load_fix_tids(std::string file_path) {
+  std::string log = "loaded locked_tids:";
+  
+  for(int i=0; i<locked_tids.size(); i++) {
+    auto path_ = file_path + std::to_string(i) + ".txt";
+  
+    std::ifstream file(path_);
+    if (!file.is_open()) {
+      throw std::runtime_error("Failed to open file: " + path_);
+    }  
+
+    std::string token;
+    char c;
+    // 逐字符读取，支持：空格 / 逗号 / 换行 / tab
+    while (file.get(c)) {
+      if (std::isdigit(c) || c == '-' || c == '+') {
+        token.push_back(c);
+      } else {
+        // 遇到分隔符，尝试解析已有 token
+        if (!token.empty()) {
+          try {
+            long v = std::stol(token);
+            locked_tids[i].insert(v);
+            if(locked_tids[i].size()>300)
+              break;
+          } catch (const std::exception& e) {
+            throw std::runtime_error(
+                "Invalid integer token in file " + path_ +
+                ": \"" + token + "\"");
+          }
+          token.clear();
+        }
+      }
+    }
+
+    // 处理文件末尾没有分隔符的情况
+    if (!token.empty()) {
+      try {
+        long v = std::stol(token);
+        locked_tids[i].insert(v);
+      } catch (const std::exception& e) {
+        throw std::runtime_error(
+            "Invalid integer token in file " + path_ +
+            ": \"" + token + "\"");
+      }
+    }    
+    file.close();
+    log += std::to_string(locked_tids[i].size()) + "-";
+  }
+  // std::cout << log << "\n";
+}
+
+void DTBCheckpointPool::may_be_insert_locked(int device, const strong& cell) {
+  auto tid = cell->id;
+  if(locked_tids[device].find(tid) != locked_tids[device].end())
+  {
+    if(device_dtbpool.empty()) return;
+    auto pool = device_dtbpool[device].get();
+    auto wc = weak(cell);
+    pool->locked_cells.push_back(wc);
+    // printf("locked_cells size:%ld\n", pool->locked_cells.size());
+    cell->pool->lock();
+    cell->pool->is_retain = true;
+  }
+}
+
+void DTBCheckpointPool::release_locked(int device) {
+  if(device_dtbpool.empty()) return;
+  auto pool = device_dtbpool[device].get();
+  for(auto & wcell: pool->locked_cells) {
+    if(auto scell = wcell.lock()) {
+      scell->pool->is_retain = false;
+      scell->pool->unlock();
+    }
+  }
+}
+
 void DTBCheckpointPool::clear_checkpointpool(int device, bool last_iter){
   if(device_dtbpool.empty()) return;          // exec without dtbpool  
   auto pool = device_dtbpool[device].get();
@@ -578,7 +661,14 @@ void DTBCheckpointPool::clear_checkpointpool(int device, bool last_iter){
     // }
   #endif
     pool->clear_exts(last_iter);
-    
+    release_locked(device);
+  }
+  bwd_count ++;
+  recursion_depth_total += recursion_depth_counter[device];
+  recursion_depth_counter[device]=0;
+  for (int i=0; i<if_during_backward.size(); i++) {
+    if(i!=device)
+      assert(recursion_depth_counter[i]==0);
   }
 }
 

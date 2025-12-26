@@ -10,7 +10,8 @@ export MEM_BUDGET=$mem_budget
 echo "set mem_budget $mem_budget"
 
 export CUDA_DEVICE_MAX_CONNECTIONS=1
-export CUDA_VISIBLE_DEVICES=4,5,6,7 # 4,5,6,7
+export CUDA_VISIBLE_DEVICES=0,1,2,3 # 4,5,6,7
+# export CUDA_VISIBLE_DEVICES=4,5,6,7 # 4,5,6,7
 export RECORD_MEM_SNAPSHOT=1
 export SNAP_FILE_NAME="pretrain_llama_7B_fdtr_pp4_b36_distopt"
 

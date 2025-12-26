@@ -2,6 +2,7 @@
 """Pretrain Llama2."""
 
 import os
+import sys
 import torch
 from functools import partial
 from typing import Union
@@ -230,12 +231,21 @@ if __name__ == "__main__":
 
     # Temporary for transition to core datasets
     train_valid_test_datasets_provider.is_distributed = True
+    
 
     if USE_DTR:
         torch.init_dtb_manager()
         print('FlashDTR initialization succeed.')
         if MEM_BUDGET > 0:
-            torch.set_memory_budget(int(MEM_BUDGET * 1e10))
+            torch.set_memory_budget(int(MEM_BUDGET * 1e10))    
+        if os.environ.get('E2_LOG_X') == '1':
+            # 不适合多级多卡环境
+            file_path_prefix = os.environ.get("FIX_TIDS_PREFIX")
+            if file_path_prefix == None:
+                print(f"ERROR: {file_path_prefix} is not set")
+                sys.exit(1)
+            else:
+                torch.load_fix_tids(file_path_prefix)
 
     # pretrain(train_valid_test_datasets_provider,
     #          model_provider,
@@ -257,7 +267,6 @@ if __name__ == "__main__":
              args_defaults={'tokenizer_type': 'GPT2BPETokenizer'})
         
         global_rank = torch.distributed.get_rank()
-        print(f"pretrain over, rank {global_rank}")
 
         if USE_DTR:
             torch.log_dtr_statics()

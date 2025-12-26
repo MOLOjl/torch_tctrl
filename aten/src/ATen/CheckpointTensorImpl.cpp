@@ -233,6 +233,11 @@ void check_current_exts(long device){
 void init_dtb_manager(){
 #ifdef MULTI_MODE
   c10::dtb::lazyInitDTB();
+  const char* e2 = std::getenv("E2_LOG");
+  if (e2) {
+    c10::dtb::record_op_recs = true;
+  }
+  
 #endif
 }
 
@@ -285,6 +290,12 @@ void set_backward_flag(){
   // printf("SET_BACKWARD_FALG TRIGGER\n");
 }
 
+void load_fix_tids(c10::string_view str_) {
+  auto str = std::string(str_);
+  auto *pm = getDTBPoolManager();
+  pm->load_fix_tids(str);
+}
+
 void unset_backward_flag(){
 // #ifdef MULTI_MODE
 //   auto *pm = getDTBPoolManager();
@@ -330,8 +341,8 @@ void force_evict(long mode){
 void log_dtr_statics(){
 #ifdef DEBUG_MODE
 #ifdef MULTI_MODE
+  auto *pm = getDTBPoolManager();
   if(record_fragmentation){
-    auto *pm = getDTBPoolManager();
     int did = 0;
     for(const auto& mem_info: pm->get_peak_memory()){
       std::stringstream log_str;
@@ -340,6 +351,29 @@ void log_dtr_statics(){
       c10::dtb::DTRLogApCost("device-"+std::to_string(did)+" fragmentation ratio", (1. - (static_cast<double>(mem_info.first) / static_cast<double>(mem_info.second))) / 1e7);
       did++;
     }
+  }
+  
+  // E2_LOG LOG_FILE
+  const char* e2 = std::getenv("E2_LOG");
+  const char* e2x = std::getenv("E2_LOG_X");
+  const char* log_file = std::getenv("LOG_FILE");
+
+  if (e2) {
+    // analysis nodes graph
+    std::ofstream ofs(log_file, std::ios::app);
+    int device = c10::cuda::current_device();
+    ofs << "device," << device << ",log_file_name,\"" <<  c10::dtb::DTRLogger::logger().get_filename("default") << "\"\n";
+    std::cout << "device," << device << ", opgraph log: " << c10::dtb::DTRLogger::logger().get_filename("default") << "\n";
+  }
+  if(e2x) {
+    std::ofstream ofs(log_file, std::ios::app);
+    for(auto rc : pm->remat_counter)
+      if(rc != 0)
+        ofs << "remat_counts," << rc << "\n";
+    size_t avg_recursion_depth = (size_t)(pm->recursion_depth_total / pm->bwd_count);
+    ofs << "recursion_depth_total," << pm->recursion_depth_total;
+    ofs << ",bwd_count," << pm->bwd_count;
+    ofs << ",avg_recursion_depth," << avg_recursion_depth << "\n";
   }
 #endif
   if(record_er_counts){
@@ -351,21 +385,6 @@ void log_dtr_statics(){
     c10::dtb::DTRLogCounts("destruct tensor counts", tensor_destruct_counts);
     c10::dtb::DTRLogCounts("remat counts", remat_counts);
   }
-
-  // pyf_debug
-  size_t recursion_depth = 0;
-  size_t dev_count = 0;
-
-  // E2_LOG LOG_FILE
-  const char* e1 = std::getenv("E1_LOG");
-  const char* e2 = std::getenv("E2_LOG");
-  const char* log_file = std::getenv("LOG_FILE");
-
-  if (e1) {
-    std::ofstream ofs(log_file, std::ios::app);
-    ofs << "remat_counts," << remat_counts;
-  }
-
 #endif
 }
 

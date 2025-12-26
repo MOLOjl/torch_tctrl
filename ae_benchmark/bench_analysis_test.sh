@@ -29,3 +29,5 @@ echo "mem_budge,0.5" >> $LOG_FILE
 bash ./examples/pretrain_gpt_distributed.sh 3.7
 echo "mem_budge,0.4" >> $LOG_FILE
 bash ./examples/pretrain_gpt_distributed.sh 3.0
+
+unset E1_LOG

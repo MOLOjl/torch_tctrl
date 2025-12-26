@@ -3,16 +3,7 @@
 namespace c10 {
 namespace dtb {
 
-DTRLogger::DTRLogger() : time_prefix(get_time_prefix()), out(get_filename("default")) {
-  const char* e2 = std::getenv("E2_LOG");
-  const char* e1 = std::getenv("E1_LOG");
-  if (e1) {
-    record_er_counts = true;
-  }
-  if (e2) {
-    record_op_recs = true;
-  }
-}
+DTRLogger::DTRLogger() : time_prefix(get_time_prefix()), out(get_filename("default")) {}
 
 std::string DTRLogger::get_time_prefix() {
     std::time_t t = std::time(nullptr);

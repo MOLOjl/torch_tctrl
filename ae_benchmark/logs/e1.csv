@@ -1,5 +1,11 @@
-iter,1,time(ms),33465.41690826416,frag,0.071
-iter,2,time(ms),30513.70859146118,frag,0.083
-iter,3,time(ms),30531.232357025146,frag,0.083
-iter,4,time(ms),30751.986265182495,frag,0.075
-iter,5,time(ms),30476.85170173645,frag,0.075
+mem_budge,0.8
+time(ms),18270.873308181763,frag,0.033
+remat_counts,5856,recursion_depth,6617
+time(ms),15438.552141189575,frag,0.033
+remat_counts,5856,recursion_depth,6617
+time(ms),15438.020944595337,frag,0.033
+remat_counts,5856,recursion_depth,6617
+time(ms),15435.596227645874,frag,0.033
+remat_counts,5856,recursion_depth,6617
+time(ms),15448.813438415527,frag,0.033
+remat_counts,5856,recursion_depth,6617

@@ -34,6 +34,8 @@
   variants: function
 - func: unset_backward_flag() -> ()
   variants: function
+- func: load_fix_tids(str file_path) -> ()
+  variants: function
 - func: mark_train(bool mode) -> ()
   variants: function
 - func: force_evict(int mode) -> ()

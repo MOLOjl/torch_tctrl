@@ -19,6 +19,7 @@ struct CheckpointPool {
   std::vector<weak_intrusive_ptr<External>> exts;
   std::vector<weak> temp_cptc;            // during forward&backward, mark those input tensors is created casually
   std::vector<weak> candidates;           // candidates for end point      [deprecated]
+  std::vector<weak> locked_cells; // [dev] record fix tensors
   std::vector<ResidualChainRef> chains; 
   StrongDCM tmp_dcm;
   std::vector<StrongDCM> dcms;            // for dcr

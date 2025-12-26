@@ -7,8 +7,8 @@ echo "set mem_budget $mem_budget"
 export CUDA_DEVICE_MAX_CONNECTIONS=1    # necessary for multi node
 # export CUDA_VISIBLE_DEVICES=7
 # export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
-export CUDA_VISIBLE_DEVICES=0,1,2,3
-# export CUDA_VISIBLE_DEVICES=4,5,6,7
+# export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 # export RECORD_MEM_SNAPSHOT=1
 # export SNAP_FILE_NAME="pretrain_gpt_17B_mb4_pp4_b3_probatch_defaultstream"
 # export SNAP_FILE_NAME="pretrain_gpt_350M_mb4_pp4_interleaved1f1b"

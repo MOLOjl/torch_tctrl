@@ -142,7 +142,6 @@ def loss_func(loss_mask: torch.Tensor, output_tensor: torch.Tensor):
 
     return loss * args.context_parallel_size, {'lm loss': averaged_loss[0]}
 
-
 def forward_step(data_iterator, model: GPTModel):
     """Forward training step.
 

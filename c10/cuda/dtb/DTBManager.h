@@ -33,9 +33,11 @@ static const bool USE_DTR = ([]() -> bool {    /// init if use dtr by check env 
 
   class DTBCheckpointPool{
     private:
+      // DTB初始化的时候，megatron还没有分布式初始化，每个进程都不知道自己的rank，所以需要复制n份
       std::vector<std::unique_ptr<CheckpointPool>> device_dtbpool;
       std::vector<size_t> peak_allocated_memory;
       std::vector<size_t> peak_reserved_memory;
+      std::vector<std::unordered_set<long>> locked_tids; // for locked tensors
 #ifdef MEM_FIRST_EVICT
       ska::flat_hash_map<void*, weak_intrusive_ptr<AliasPool>> p2ap;
       // std::unordered_map<void*, weak_intrusive_ptr<AliasPool>> p2ap;
@@ -96,6 +98,11 @@ static const bool USE_DTR = ([]() -> bool {    /// init if use dtr by check env 
     public:
       std::vector<bool> if_train_mode;
       std::vector<bool> if_during_backward;
+      std::vector<size_t> remat_counter;
+      std::vector<size_t> recursion_depth_counter;
+      // avg recursion_depth = recursion_depth_total/bwd_count
+      size_t recursion_depth_total;
+      size_t bwd_count;
 
       void init(int device_count);
 
@@ -146,6 +153,11 @@ static const bool USE_DTR = ([]() -> bool {    /// init if use dtr by check env 
 
       void add_dcm_into_queue(int device);
 #endif
+      void load_fix_tids(std::string file_path);
+
+      void may_be_insert_locked(int device, const strong& cell);
+
+      void release_locked(int device);
 
       void toggle_sampling(bool if_sampling);
 
