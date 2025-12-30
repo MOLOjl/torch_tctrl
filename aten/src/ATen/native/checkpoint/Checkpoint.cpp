@@ -1022,18 +1022,55 @@ Tensor checkpoint_upsample_bilinear2d(at::Tensor const& self, c10::ArrayRef<long
   return CheckpointTensorImpl::make("upsample_bilinear2d", rt, {self})[0];
 }
 
-Tensor& checkpoint_upsample_bilinear2d_out(at::Tensor& out, const at::Tensor& self, c10::ArrayRef<long> output_size, bool align_corners, c10::optional<double> scales_h, c10::optional<double> scales_w) {
-  std::vector<long> output_size_ = output_size.vec();
-  mutate_function_t mt =
-    [=](const Tensors& vec) {
-    Tensor out = vec.at(0);
-    at::upsample_bilinear2d_out(out, vec.at(1), output_size_, align_corners, scales_h, scales_w);
-  };
-  CheckpointTensorImpl::mutate("binary_cross_entropy_out", mt, {out, self}, {0});
-  return out;
+// Tensor& checkpoint_upsample_bilinear2d_out(at::Tensor& out, const at::Tensor& self, c10::ArrayRef<long> output_size, bool align_corners, c10::optional<double> scales_h, c10::optional<double> scales_w) {
+//   std::vector<long> output_size_ = output_size.vec();
+//   mutate_function_t mt =
+//     [=](const Tensors& vec) {
+//     Tensor out = vec.at(0);
+//     at::upsample_bilinear2d_out(out, vec.at(1), output_size_, align_corners, scales_h, scales_w);
+//   };
+//   CheckpointTensorImpl::mutate("binary_cross_entropy_out", mt, {out, self}, {0});
+//   return out;
+// }
+
+Tensor& checkpoint_upsample_bilinear2d_out(
+    const at::Tensor& self,
+    c10::ArrayRef<long> output_size,
+    bool align_corners,
+    c10::optional<double> scales_h,
+    c10::optional<double> scales_w,
+    at::Tensor& out) {
+    
+    std::vector<long> output_size_ = output_size.vec();
+    mutate_function_t mt =
+      [=](const Tensors& vec) {
+      Tensor out = vec.at(0);
+      at::upsample_bilinear2d_out(out, vec.at(1), output_size_, align_corners, scales_h, scales_w);
+    };
+    CheckpointTensorImpl::mutate("binary_cross_entropy_out", mt, {out, self}, {0});
+    return out;
 }
 
-Tensor& checkpoint_upsample_bilinear2d_backward_out(at::Tensor& grad_input, const at::Tensor& grad_output, c10::ArrayRef<long> output_size, c10::ArrayRef<long> input_size, bool align_corners, c10::optional<double> scales_h, c10::optional<double> scales_w) {
+// Tensor& checkpoint_upsample_bilinear2d_backward_out(at::Tensor& grad_input, const at::Tensor& grad_output, c10::ArrayRef<long> output_size, c10::ArrayRef<long> input_size, bool align_corners, c10::optional<double> scales_h, c10::optional<double> scales_w) {
+//   std::vector<long> output_size_ = output_size.vec();
+//   std::vector<long> input_size_ = input_size.vec();
+//   mutate_function_t mt =
+//     [=](const Tensors& vec) {
+//     Tensor grad_input = vec.at(0);
+//     at::upsample_bilinear2d_backward_out(grad_input, vec.at(1), output_size_, input_size_, align_corners, scales_h, scales_w);
+//   };
+//   CheckpointTensorImpl::mutate("upsample_bilinear2d_backward_out", mt, {grad_input, grad_output}, {0});
+//   return grad_input;
+// }
+
+Tensor& checkpoint_upsample_bilinear2d_backward_out(
+    const at::Tensor& grad_output,
+    at::IntArrayRef output_size,
+    at::IntArrayRef input_size,
+    bool align_corners,
+    c10::optional<double> scales_h,
+    c10::optional<double> scales_w,
+    at::Tensor& grad_input) {
   std::vector<long> output_size_ = output_size.vec();
   std::vector<long> input_size_ = input_size.vec();
   mutate_function_t mt =
@@ -1116,23 +1153,43 @@ std::tuple<Tensor, Tensor> checkpoint__fused_dropout(const Tensor & self, double
   return {res[0], res[1]};
 }
 
-std::tuple<Tensor, Tensor> checkpoint_nll_loss2d_forward(at::Tensor const& self, const Tensor& target, const Tensor& weight, long reduction, long ignore_index) {
+std::tuple<Tensor, Tensor> checkpoint_nll_loss2d_forward(at::Tensor const& self, const Tensor& target, const c10::optional<Tensor>& weight_opt, long reduction, long ignore_index) {
   rematerialize_function_t rt =
     [=](const Tensors& vec) -> Tensors {
         auto ret = at::nll_loss2d_forward(vec.at(0), vec.at(1), vec.at(2), reduction, ignore_index);
         return {std::get<0>(ret), std::get<1>(ret)};
       };
+  c10::MaybeOwned<Tensor> weight_opt_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
+  const Tensor& weight = *weight_opt_maybe_owned;
   auto ret = CheckpointTensorImpl::make("nll_loss2d_forward", rt, {self, target, weight});
   return {ret[0], ret[1]};
 }
 
-std::tuple<Tensor&, Tensor&> checkpoint_nll_loss2d_forward_out(at::Tensor& output, at::Tensor& total_weight, const Tensor& self, const Tensor& target, const Tensor& weight, long reduction, long ignore_index) {
+// std::tuple<Tensor&, Tensor&> checkpoint_nll_loss2d_forward_out(at::Tensor& output, at::Tensor& total_weight, const Tensor& self, const Tensor& target, const Tensor& weight, long reduction, long ignore_index) {
+//   mutate_function_t mt =
+//     [=](const Tensors& vec) {
+//         Tensor out_ = vec.at(0);
+//         Tensor total_weight_ = vec.at(1);
+//         at::nll_loss2d_forward_out(out_, total_weight_, vec.at(2), vec.at(3), vec.at(4), reduction, ignore_index);
+//       };
+//   CheckpointTensorImpl::mutate("nll_loss2d_forward_out", mt, {output, total_weight, self, target, weight}, {0, 1});
+//   return {output, total_weight};
+// }
+
+std::tuple<Tensor&, Tensor&> checkpoint_nll_loss2d_forward_out(const Tensor& self,
+    const Tensor& target, const c10::optional<Tensor>& weight_opt,
+    int64_t reduction,
+    int64_t ignore_index,
+    Tensor& output,
+    Tensor& total_weight) {
   mutate_function_t mt =
     [=](const Tensors& vec) {
         Tensor out_ = vec.at(0);
         Tensor total_weight_ = vec.at(1);
         at::nll_loss2d_forward_out(out_, total_weight_, vec.at(2), vec.at(3), vec.at(4), reduction, ignore_index);
       };
+  c10::MaybeOwned<Tensor> weight_opt_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
+  const Tensor& weight = *weight_opt_maybe_owned;
   CheckpointTensorImpl::mutate("nll_loss2d_forward_out", mt, {output, total_weight, self, target, weight}, {0, 1});
   return {output, total_weight};
 }
@@ -1147,11 +1204,13 @@ Tensor& checkpoint_nll_loss2d_backward_out(Tensor& grad_input, const Tensor& gra
   return {grad_input};
 }
 
-Tensor checkpoint_nll_loss2d_backward(const Tensor& grad_output, const Tensor& self, const Tensor& target, const Tensor& weight, long reduction, long ignore_index, const Tensor& total_weight) {
+Tensor checkpoint_nll_loss2d_backward(const Tensor& grad_output, const Tensor& self, const Tensor& target, const c10::optional<Tensor>& weight_opt, long reduction, long ignore_index, const Tensor& total_weight) {
   rematerialize_function_t rt =
     [=](const Tensors& vec) -> Tensors {
         return {at::nll_loss2d_backward(vec.at(0), vec.at(1), vec.at(2), vec.at(3), reduction, ignore_index, vec.at(4))};
       };
+  c10::MaybeOwned<Tensor> weight_opt_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
+  const Tensor& weight = *weight_opt_maybe_owned;
   return CheckpointTensorImpl::make("nll_loss2d_backward", rt, {grad_output, self, target, weight, total_weight})[0];
 }
 

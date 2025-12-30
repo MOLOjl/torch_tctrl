@@ -10220,6 +10220,7 @@
     CPU: nll_loss2d_forward_out_cpu
     CUDA: nll_loss2d_forward_out_cuda
     MPS: nll_loss2d_forward_out_mps
+    Checkpoint: checkpoint_nll_loss2d_forward_out
 - func: nll_loss2d_forward(Tensor self, Tensor target, Tensor? weight, int reduction,
     SymInt ignore_index) -> (Tensor output, Tensor total_weight)
   python_module: nn
@@ -10227,6 +10228,7 @@
     CPU: nll_loss2d_forward_cpu
     CUDA: nll_loss2d_forward_cuda
     MPS: nll_loss2d_forward_mps
+    Checkpoint: checkpoint_nll_loss2d_forward
 - func: nll_loss2d_backward.grad_input(Tensor grad_output, Tensor self, Tensor target,
     Tensor? weight, int reduction, SymInt ignore_index, Tensor total_weight, *, Tensor(a!)
     grad_input) -> Tensor(a!)
@@ -10242,6 +10244,7 @@
     CPU: nll_loss2d_backward_cpu
     CUDA: nll_loss2d_backward_cuda
     MPS: nll_loss2d_backward_mps
+    Checkpoint: checkpoint_nll_loss2d_backward
 - func: smooth_l1_loss.out(Tensor self, Tensor target, int reduction=Mean, float beta=1.0,
     *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck
@@ -11190,6 +11193,7 @@
     CPU: upsample_bilinear2d_out_cpu
     CUDA: upsample_bilinear2d_out_cuda
     MPS: upsample_bilinear2d_out_mps
+    Checkpoint: checkpoint_upsample_bilinear2d_out
 - func: upsample_bilinear2d(Tensor self, SymInt[2] output_size, bool align_corners,
     float? scales_h=None, float? scales_w=None) -> Tensor
   python_module: nn
@@ -11205,6 +11209,7 @@
     CPU: upsample_bilinear2d_backward_out_cpu
     CUDA: upsample_bilinear2d_backward_out_cuda
     MPS: upsample_bilinear2d_backward_out_mps
+    Checkpoint: checkpoint_upsample_bilinear2d_backward_out
 - func: upsample_bilinear2d_backward(Tensor grad_output, SymInt[2] output_size, SymInt[4]
     input_size, bool align_corners, float? scales_h=None, float? scales_w=None) ->
     Tensor
